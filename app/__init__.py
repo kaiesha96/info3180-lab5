@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, session
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "AmOr3RaNdoMk3Y"

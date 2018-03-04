@@ -10,6 +10,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
 from forms import LoginForm
 from models import UserProfile
+from sqlalchemy.orm import sessionmaker
 
 
 ###
@@ -31,10 +32,33 @@ def about():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
-    if request.method == "POST":
+    user = UserProfile()
+    
+    if request.method == 'POST' and form.validate_on_submit():
         # change this to actually validate the entire form submission
         # and not just one field
-        if form.username.data:
+        username = form.username.data
+        password = form.password.data
+        # Session = sessionmaker(bind=engine)
+        user = UserProfile.query.filter_by(username=username,password=password).first()
+        if user:
+            login_user(user)
+            flash("Logged in successfully.")
+            return redirect(url_for("secure_page"))
+        else:
+            flash("Incorrect Username or Password!")
+        
+        
+        # s = Session()
+        # query = s.query(UserProfile).filter(UserProfile.username.in_([POST_USERNAME]), UserProfile.password.in_([POST_PASSWORD]) 
+        # result = query.
+        
+        # if result:
+        #     session['logged_in'] = True
+        # else:
+        #     flash('wrong password!')
+        
+        
             # Get the username and password values from the form.
 
             # using your model, query database for a user based on the username
@@ -43,15 +67,22 @@ def login():
             # passed to the login_user() method.
 
             # get user id, load into session
-            login_user(user)
+        #login_user(user)
 
             # remember to flash a message to the user
-            return redirect(url_for("home"))  # they should be redirected to a secure-page route instead
+        #return redirect(url_for("home"))  # they should be redirected to a secure-page route instead
     return render_template("login.html", form=form)
 
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
+@app.route("/secure-page/", methods=["GET","POST"])
+@login_required
+def secure_page():
+    login_manager.login_view = "users.login"
+    return render_template("secure_page.html")
+    
+    
 @login_manager.user_loader
 def load_user(id):
     return UserProfile.query.get(int(id))
